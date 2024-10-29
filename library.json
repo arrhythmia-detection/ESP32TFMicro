@@ -1,0 +1,20 @@
+{
+  "name": "ESP32TFLMWrapper",
+  "version": "0.0.1",
+  "description": "Abstract way all the low level complexity of TensorFlow Lite Micro and makes it really easy to deploy TFLM models on supported ESP32 boards.",
+  "keywords": "ESP32, TensorFlow, TFLiteMicro, TensorFlow Lite Micro, arduino, ops wise metrics",
+  "repository": {
+    "type": "git",
+    "url": "tba"
+  },
+  "authors": [
+    {
+      "name": "Athar Noor Mohammad Rafee ",
+      "email": "noor.mohammad.rafee@g.bracu.ac.bd",
+      "maintainer": true
+    }
+  ],
+  "license": "TBA",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}
