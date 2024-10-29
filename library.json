@@ -7,10 +7,9 @@
     "type": "git",
     "url": "https://github.com/arrhythmia-detection/ESP32TFMicro.git"
   },
-  "dependencies": {
-    "eloquentarduino/EloquentTinyML": "https://github.com/eloquentarduino/EloquentTinyML.git",
-    "eloquentarduino/tflm_esp32": "https://github.com/eloquentarduino/tflm_esp32.git"
-  },
+  "include": "include",
+  "src": "src",
+  "lib": "lib",
   "authors": [
     {
       "name": "Athar Noor Mohammad Rafee ",
