@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "eloquentarduino/EloquentTinyML": "https://github.com/eloquentarduino/EloquentTinyML.git",
-    "eloquentarduino/tflm_esp32": "https://github.com/eloquentarduino/tflm_esp32.git"
+    "arrhythmia-detection/tflm_esp32": "https://github.com/arrhythmia-detection/tflm_esp32.git"
   },
   "authors": [
     {
