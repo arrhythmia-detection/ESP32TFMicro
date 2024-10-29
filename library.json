@@ -5,7 +5,7 @@
   "keywords": "ESP32, TensorFlow, TFLiteMicro, TensorFlow Lite Micro, arduino, ops wise metrics",
   "repository": {
     "type": "git",
-    "url": "tba"
+    "url": "https://github.com/arrhythmia-detection/ESP32TFMicro.git"
   },
   "authors": [
     {
@@ -14,7 +14,7 @@
       "maintainer": true
     }
   ],
-  "license": "TBA",
+  "license": "MIT",
   "frameworks": "arduino",
   "platforms": "espressif32"
 }
