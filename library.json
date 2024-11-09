@@ -1,14 +1,14 @@
 {
   "name": "ESP32TFLMWrapper",
   "version": "0.0.1",
-  "description": "Abstract way all the low level complexity of TensorFlow Lite Micro and makes it really easy to deploy TFLM models on supported ESP32 boards.",
+  "description": "Abstract away all the low level complexity of TensorFlow Lite Micro and makes it really easy to deploy TFLM models on supported ESP32 boards.",
   "keywords": "ESP32, TensorFlow, TFLiteMicro, TensorFlow Lite Micro, arduino, ops wise metrics",
   "repository": {
     "type": "git",
     "url": "https://github.com/arrhythmia-detection/ESP32TFMicro.git"
   },
   "dependencies": {
-    "eloquentarduino/EloquentTinyML": "https://github.com/eloquentarduino/EloquentTinyML.git",
+    "eloquentarduino/EloquentTinyML": "https://github.com/eloquentarduino/EloquentTinyML.git#3.0.1",
     "arrhythmia-detection/tflm_esp32": "https://github.com/arrhythmia-detection/tflm_esp32.git"
   },
   "authors": [
