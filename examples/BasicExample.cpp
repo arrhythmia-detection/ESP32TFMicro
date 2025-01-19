@@ -21,12 +21,13 @@ void setup() {
     simpleMLP.resolver.AddSoftmax();
     // Done
     delay(3000);
+    // Here `g_model` is the name of the C char array generated via xxD
     while (!simpleMLP.begin(g_model).isOk())
         Serial.println(simpleMLP.exception.toString());
 }
 
 // Your input array.
-// In this example we are utilizing a quantized model. Hence `int8_t` as input
+// In this example we are utilizing a 8-bit integer quantized model. Hence `int8_t` as input
 int8_t x1[] = {1, 3, 2, 3, 4, 5, 6, 7, 9, 1};
 
 void loop() {
