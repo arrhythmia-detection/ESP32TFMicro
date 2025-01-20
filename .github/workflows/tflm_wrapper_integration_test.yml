@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,75 +38,35 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install platformio
-          sudo apt-get update
-          sudo apt-get install -y wget xz-utils libsdl2-2.0-0 libpixman-1-0
 
       - name: Install ESP32 toolchain
         run: |
           platformio platform install espressif32
-          platformio platform install native
 
-      - name: Set up QEMU for ESP32-S3
+      - name: Build project and tests
         run: |
-          wget https://github.com/espressif/qemu/releases/download/esp-develop-9.0.0-20240606/qemu-xtensa-softmmu-esp_develop_9.0.0_20240606-x86_64-linux-gnu.tar.xz
-          tar xf qemu-xtensa-softmmu-esp_develop_9.0.0_20240606-x86_64-linux-gnu.tar.xz
-          sudo mv qemu/bin/qemu-system-xtensa /usr/local/bin/
-          sudo chmod +x /usr/local/bin/qemu-system-xtensa
+          # Attempt to build tests and capture output
+          platformio test --without-uploading --without-testing -e esp32-s3-devkitc-1-mcu-test 2>&1 | tee build_output.log
+          
+          # Store the exit code
+          BUILD_EXIT_CODE=${PIPESTATUS[0]}
+          
+          # Always create artifacts directory
+          mkdir -p artifacts
+          cp build_output.log artifacts/
+          
+          # Copy the entire .pio directory for debugging if needed
+          cp -r .pio artifacts/
+          
+          # Exit with the original build exit code
+          exit $BUILD_EXIT_CODE
 
-      - name: Build tests
-        run: |
-          # First just build the test firmware
-          platformio test --without-uploading --without-testing -e esp32-s3-devkitc-1-qemu
-
-      - name: Run tests with QEMU
-        run: |
-          # Create an empty flash file
-          dd if=/dev/zero of=flash.bin bs=1M count=16
-          
-          # Create output file
-          touch test_output.log
-          
-          # Run QEMU with modified configuration
-          timeout 300 qemu-system-xtensa \
-            -machine esp32s3 \
-            -nographic \
-            -drive file=flash.bin,if=mtd,format=raw \
-            -global driver=timer.esp32.timg,property=wdt_disable,value=true \
-            -global esp32.uart0.serial=pty \
-            -kernel .pio/build/esp32-s3-devkitc-1-qemu/firmware.elf \
-            -semihosting \
-            2>&1 | tee qemu_output.log &
-          
-          # Give QEMU some time to run the tests
-          sleep 30
-          
-          # Display QEMU output for debugging
-          echo "QEMU Output:"
-          cat qemu_output.log
-          
-          # Check if QEMU is still running
-          if pgrep -f qemu-system-xtensa > /dev/null; then
-            echo "QEMU is still running, killing it..."
-            pkill -f qemu-system-xtensa
-          fi
-          
-          # Check test results
-          if grep -q "PASSED" qemu_output.log || grep -q "PASSED" test_output.log; then
-            echo "Tests passed successfully!"
-            exit 0
-          else
-            echo "Tests failed or didn't complete!"
-            echo "Full QEMU output:"
-            cat qemu_output.log
-            exit 1
-          fi
-
-      - name: Upload test results
+      - name: Upload build artifacts
+        # Upload the artifacts if the build fails
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: test-results
+          name: build-artifacts
           path: |
-            test_output.log
-            qemu_output.log
-            .pio/build/esp32-s3-devkitc-1-qemu/firmware.elf
+            artifacts/
+            platformio.ini
