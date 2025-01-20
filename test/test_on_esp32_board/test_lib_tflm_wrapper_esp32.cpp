@@ -49,7 +49,7 @@ void test_prediction_class() {
 
 void test_prediction_output_range() {
     testMLP.predict(test_inputs);
-    // Check if all output probabilities are between 0 and 1
+    // Check if all output probabilities are between 0 and 1 (SOFTMAX Activiation Function)
     for (u_int16_t i = 0; i < TF_NUM_OUTPUTS; i++) {
         TEST_ASSERT_TRUE(testMLP.outputs[i] >= 0.0f && testMLP.outputs[i] <= 1.0f);
     }
