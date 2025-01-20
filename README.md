@@ -15,6 +15,12 @@
             <img src="https://img.shields.io/badge/TFLITE micro-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white"  alt="whatever">
         </a>
     </div>
+
+<h6 align="center"> 
+
+[![TFLMWrapper ESP32 Integration Test](https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml/badge.svg)](https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml)
+
+</h6>
 </h6>
 
 Abstracts away all the low level complexity of TensorFlow
