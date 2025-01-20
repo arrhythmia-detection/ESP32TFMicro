@@ -50,7 +50,7 @@ jobs:
         run: |
           wget https://github.com/espressif/qemu/releases/download/esp-develop-9.0.0-20240606/qemu-xtensa-softmmu-esp_develop_9.0.0_20240606-x86_64-linux-gnu.tar.xz
           tar xf qemu-xtensa-softmmu-esp_develop_9.0.0_20240606-x86_64-linux-gnu.tar.xz
-          sudo mv qemu-xtensa-softmmu/bin/qemu-system-xtensa /usr/local/bin/
+          sudo mv qemu/bin/qemu-system-xtensa /usr/local/bin/
           sudo chmod +x /usr/local/bin/qemu-system-xtensa
 
       - name: Run tests with QEMU
