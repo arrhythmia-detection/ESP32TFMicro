@@ -39,7 +39,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
           sudo apt-get update
-          sudo apt-get install -y wget xz-utils
+          sudo apt-get install -y wget xz-utils libgcrypt20 libglib2.0-0 libpixman-1-0 libsdl2-2.0-0 libslirp0
 
       - name: Install ESP32 toolchain
         run: |
@@ -62,6 +62,9 @@ jobs:
         run: |
           # Create an empty flash file
           dd if=/dev/zero of=flash.bin bs=1M count=4
+          
+          # Create output file
+          touch test_output.log
           
           # Run QEMU directly with the test firmware
           timeout 300 qemu-system-xtensa \
