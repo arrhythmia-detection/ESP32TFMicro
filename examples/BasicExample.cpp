@@ -21,7 +21,7 @@ void setup() {
     simpleMLP.resolver.AddSoftmax();
     // Done
     delay(3000);
-    // Here `g_model` is the name of the C char array generated via xxD
+    // Here `g_model` is the name of the C char array generated via xxd tool
     while (!simpleMLP.begin(g_model).isOk())
         Serial.println(simpleMLP.exception.toString());
 }
