@@ -72,7 +72,7 @@ jobs:
             -nographic \
             -drive file=flash.bin,if=mtd,format=raw \
             -global driver=timer.esp32.timg,property=wdt_disable,value=true \
-            -kernel .pio/build/esp32-s3-devkitc-1/firmware.elf \
+            -kernel .pio/build/esp32-s3-devkitc-1-qemu/firmware.elf \
             -serial file:test_output.log \
             2>&1 | tee qemu_output.log &
           
@@ -98,4 +98,4 @@ jobs:
           path: |
             test_output.log
             qemu_output.log
-            .pio/build/esp32-s3-devkitc-1/firmware.elf
+            .pio/build/esp32-s3-devkitc-1-qemu/firmware.elf
