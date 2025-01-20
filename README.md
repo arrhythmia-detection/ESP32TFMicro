@@ -17,13 +17,14 @@
     </div>
 
 <h6 align="center"> 
-
-[![TFLMWrapper ESP32 Integration Test](https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml/badge.svg)](https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml)
-
+        <a href="https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml">
+            <img src="https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml/badge.svg"  alt="whatever">
+        </a>
 </h6>
 </h6>
 
-Abstracts away all the low level complexity of TensorFlow
+A simple [PlatformIO](https://platformio.org/) Arduino library that
+abstracts away all the low level complexity of TensorFlow
 Lite Micro and makes it really easy to deploy
 TFLM (*T*ensor*F*low *L*ite *M*icro) models on supported ESP32 boards.
 On top of that it adds the ability to print
