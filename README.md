@@ -43,6 +43,16 @@ On top of that it adds the ability to print
 per [ops](https://www.tensorflow.org/api_docs/cc/namespace/tensorflow/ops) wise
 execution time (*latency*).
 
+### Ops Execution Time Logging
+
+By default, the library will log per ops wise execution time.
+To stop logging the execution time, please add/append the build flag shown below
+in your [platformio.ini](platformio.ini) file and build the project.
+
+```shell
+    build_flags = -DEXCLUDE_OPS_EXECUTION_TIME_LOGGING
+```
+
 ### Acknowledgement
 
 This library internally utilizes
