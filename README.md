@@ -16,11 +16,23 @@
         </a>
     </div>
 
+
 <h6 align="center"> 
         <a href="https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml">
             <img src="https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/tflm_wrapper_integration_test.yml/badge.svg"  alt="whatever">
         </a>
+        <a href="https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/pio_registry_publisher.yml">
+            <img src="https://github.com/arrhythmia-detection/ESP32TFMicro/actions/workflows/pio_registry_publisher.yml/badge.svg"  alt="whatever">
+        </a>
+        <div align="center">
+            <hr width="250px"/>
+            <a href="https://registry.platformio.org/libraries/inmoresentum/ESP32TFLMWrapper">
+                <img src="https://badges.registry.platformio.org/packages/inmoresentum/library/ESP32TFLMWrapper.svg" alt="PlatformIO Registry" />
+            </a>
+            <hr width="250px"/>
+        </div>
 </h6>
+
 </h6>
 
 A simple [PlatformIO](https://platformio.org/) Arduino library that
