@@ -1,6 +1,6 @@
 {
   "name": "ESP32TFLMWrapper",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Abstract away all the low level complexity of TensorFlow Lite Micro and makes it really easy to deploy TFLM models and logs per ops wise execution time on supported ESP32 boards.",
   "keywords": "ESP32, ESP32-S3, TensorFlow, TFLM, TFLiteMicro, operation, TensorFlow Lite Micro, arduino, esp32 arduino, ops wise metrics",
   "repository": {
