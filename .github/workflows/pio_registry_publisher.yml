@@ -1,0 +1,60 @@
+name: Publish ESP32TFLMWrapper to PlatformIO Registry
+
+on:
+  push:
+    branches: [ publish ]
+  pull_request:
+    branches: [ publish ]
+    types: [ closed ]
+
+jobs:
+  publish:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Setup PlatformIO authentication
+        run: |
+          mkdir -p ~/.platformio
+          echo "[auth]" > ~/.platformio/auth.ini
+          echo "token = ${{ secrets.PIO_AUTH_KEY }}" >> ~/.platformio/auth.ini
+
+      - name: Publish to PlatformIO Registry
+        run: |
+          # First check if library.json exists
+          if [ ! -f "library.json" ]; then
+            echo "Error: library.json not found!"
+            exit 1
+          fi
+          
+          # Attempt to publish
+          echo "Publishing library to PlatformIO Registry..."
+          pio package publish --no-interactive 2>&1 | tee publish_output.log
+          
+          # Check if publish was successful
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "Successfully published to PlatformIO Registry!"
+          else
+            echo "Failed to publish library"
+            cat publish_output.log
+            exit 1
+          fi
+
+      - name: Upload publish log
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: publish-log
+          path: publish_output.log
