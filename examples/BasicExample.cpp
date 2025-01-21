@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "model.h" // Your model
-#include "esp32_tflm_wrapper.h" // include this wrapper
+#include "esp32_tflm_wrapper.h" // include this wrapper which brings all necessary tflm deps
 
 // this is the memory (in bytes) that will be allocated to
 // tflm interpreter
@@ -13,10 +13,13 @@ Eloquent::TF::Sequential<TF_NUM_OPS, ARENA_SIZE> simpleMLP;
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("__TENSORFLOW MLP__");
-    // network configuration as per your model
+    Serial.println("__TENSORFLOW INT-8 Quantized MLP__");
+
+    // Input output
     simpleMLP.setNumInputs(10);
     simpleMLP.setNumOutputs(5);
+
+    // network configuration as per your model (add the necessary ops)
     simpleMLP.resolver.AddFullyConnected();
     simpleMLP.resolver.AddSoftmax();
     // Done
