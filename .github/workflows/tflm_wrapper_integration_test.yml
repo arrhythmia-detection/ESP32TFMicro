@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Cache pip packages
         uses: actions/cache@v3
@@ -64,7 +64,7 @@ jobs:
       - name: Upload build artifacts
         # Upload the artifacts if the build fails
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: build-artifacts
           path: |
