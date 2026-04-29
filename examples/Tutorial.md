@@ -828,11 +828,15 @@ tflite_quant_model = converter.convert()
 CNNs require a substantially larger **Tensor Arena**.
 The intermediate feature maps created during convolution
 and pooling are stored here.
-If initialization fails, the `ARENA_SIZE` must be increased.
+Based on our research analysis,
+this model architecture results in
+approximately **2.88 MFLOPs** and
+requires the following operation registration:
 
 ```cpp
 #include "cnn_model_quant.h"
 
+// CNNs require significantly larger arenas than MLPs
 #define ARENA_SIZE 32000 // Significantly larger than MLP
 #define TF_NUM_OPS 5
 
@@ -842,11 +846,12 @@ void setup() {
     model.setNumInputs(TIMESTEPS * FEATURES);
     model.setNumOutputs(N_CLASSES);
     
-    // Register CNN-specific operations
+    // Register specific operations utilized by the CNN model:
+    // ['CONV_2D', 'FULLY_CONNECTED', 'MAX_POOL_2D', 'RESHAPE', 'SOFTMAX']
     model.resolver.AddConv2D();
-    model.resolver.AddMaxPool2D();
-    model.resolver.AddReshape(); // Often required after pooling
     model.resolver.AddFullyConnected();
+    model.resolver.AddMaxPool2D();
+    model.resolver.AddReshape();
     model.resolver.AddSoftmax();
     
     model.begin(cnn_model_quant_tflite);
@@ -866,6 +871,8 @@ TFLM has limited support for dynamic control flow loops.
 To ensure broad compatibility and performance on the ESP32,
 we **unroll** the RNN. This instructs the compiler
 to expand the recurrent loop into a static graph of operations.
+Our analysis shows this architecture results
+in approximately **2.05 MFLOPs**.
 
 ```python
 def build_rnn_model():
@@ -885,23 +892,38 @@ def build_rnn_model():
 Recurrent architectures frequently utilize `tanh` or `sigmoid` activations.
 When performing INT8 quantization, ensure that the TFLM version
 you are using includes the integer kernels for these non-linearities.
-If deployment fails, a "float fallback" may be required for those specific layers.
+As identified in our research, unrolled RNNs
+often require a broader set of utility operations
+(like `STRIDED_SLICE`, `PACK`, and `TRANSPOSE`) to
+manage the expanded state and data movement.
 
 ### 4.3 RNN Implementation
+
+The RNN implementation requires registering a wider
+variety of operations due to the unrolling
+and state management identified during analysis.
 
 ```cpp
 #include "rnn_model_quant.h"
 
 #define ARENA_SIZE 15000
-#define TF_NUM_OPS 4
+#define TF_NUM_OPS 10 // Based on research analysis
 
 Eloquent::TF::Sequential<TF_NUM_OPS, ARENA_SIZE> model;
 
 void setup() {
+    // Register operations utilized by the unrolled RNN:
+    // ['ADD', 'FILL', 'FULLY_CONNECTED', 'PACK', 'SHAPE', 'SOFTMAX', 'STRIDED_SLICE', 'TANH', 'TRANSPOSE', 'UNPACK']
+    model.resolver.AddAdd();
+    model.resolver.AddFill();
     model.resolver.AddFullyConnected();
-    model.resolver.AddTanh();      // Required for SimpleRNN/LSTM
-    model.resolver.AddLogistic();  // Required for Sigmoid activations
+    model.resolver.AddPack();
+    model.resolver.AddShape();
     model.resolver.AddSoftmax();
+    model.resolver.AddStridedSlice();
+    model.resolver.AddTanh();
+    model.resolver.AddTranspose();
+    model.resolver.AddUnpack();
     
     model.begin(rnn_model_quant_tflite);
 }
