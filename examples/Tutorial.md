@@ -729,9 +729,9 @@ void loop() {
 
 ---
 
-## 3. Notes
+## Notes
 
-### 3.1 Tensor Arena Management
+### Tensor Arena Management
 
 The `ARENA_SIZE` is a static allocation
 of memory for the interpreter's scratchpad.
@@ -740,7 +740,7 @@ smallest possible value that successfully initializes the model.
 Under-allocation results in initialization failure,
 while over-allocation wastes valuable SRAM.
 
-### 3.2 Op Resolver Optimization
+### Op Resolver Optimization
 
 By utilizing `model.resolver.Add...()` instead
 of the `AllOpsResolver`,
@@ -749,7 +749,7 @@ This is a critical step for deploying complex
 models that might otherwise
 exceed the ESP32's Flash limits.
 
-### 3.3 Accuracy vs. Latency Trade-off
+### Accuracy vs. Latency Trade-off
 
 Researchers must evaluate the classification
 reports (saved during Python execution) to determine if the INT8
@@ -759,4 +759,169 @@ maximum value (the class) remains stable despite the slight
 precision loss in the underlying probabilities.
 
 ---
-*Future sections will cover Convolutional Neural Networks (CNNs) and Recurrent architectures (LSTMs).*
+
+## 3. Phase III: Convolutional Neural Networks (CNN)
+
+While MLPs are effective for fixed-feature classification,
+Convolutional Neural Networks (CNNs) excel at extracting
+spatial and temporal patterns from raw sensor data,
+such as IMU (Inertial Measurement Unit) signals.
+
+### 3.1 Model Architecture and Synthesis (Python)
+
+The `StaticContextCNN` utilizes 2D convolutions
+to analyze temporal windows of IMU data.
+This approach treats time-series data as
+a single-channel "image" where dimensions represent (Time × Features).
+
+```python
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import numpy as np
+import os
+import subprocess
+from tensorflow.python.profiler import model_analyzer, option_builder
+
+IMU_FEATURES = 3
+IMU_TIMESTEPS = 60
+N_CLASSES = 15
+
+def calculate_flops(model, input_signature):
+    """Calculates and returns the total FLOPs for a model."""
+    forward_graph = tf.function(model, input_signature).get_concrete_function().graph
+    options = option_builder.ProfileOptionBuilder.float_operation()
+    graph_info = model_analyzer.profile(forward_graph, options=options)
+    return graph_info.total_float_ops
+
+# --- Define and Compile the StaticContextCNN Model ---
+static_context_cnn = models.Sequential([
+    layers.Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu',
+                  input_shape=(IMU_TIMESTEPS, IMU_FEATURES, 1)),
+    layers.MaxPooling2D(pool_size=(2, 2)),
+    layers.Dropout(0.25),
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dropout(0.25),
+    layers.Dense(N_CLASSES, activation='softmax')
+])
+static_context_cnn.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+static_context_cnn.summary()
+
+# --- Analyze Model FLOPs ---
+input_signature = [tf.TensorSpec(shape=(1, IMU_TIMESTEPS, IMU_FEATURES, 1), dtype=tf.float32)]
+total_flops = calculate_flops(static_context_cnn, input_signature)
+print(f"Total FLOPs for CNN Model: {total_flops / 1e6:.2f} MFLOPs")
+```
+
+### 3.2 TFLite Conversion and INT8 Quantization
+
+The conversion process follows the same rigorous pipeline as the MLP, utilizing a representative dataset for calibration.
+
+```python
+def representative_data_gen():
+    for i in range(100):  # Use 100 samples for calibration
+        yield [X_train[i:i + 1]]
+
+converter_quant = tf.lite.TFLiteConverter.from_keras_model(static_context_cnn)
+converter_quant.optimizations = [tf.lite.Optimize.DEFAULT]
+converter_quant.representative_dataset = representative_data_gen
+converter_quant.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+converter_quant.inference_input_type = tf.int8
+converter_quant.inference_output_type = tf.int8
+# Required for Dense layers in TFLM
+converter_quant._experimental_disable_per_channel_quantization_for_dense_layers = True
+
+tflite_model_quant = converter_quant.convert()
+```
+
+### 3.3 Embedded Implementation Considerations
+
+Deploying CNNs on ESP32 requires careful attention to the **Tensor Arena Size**.
+Convolutional layers often create large intermediate feature maps.
+
+```cpp
+#include "cnn_model_quant.h"
+
+// CNNs require significantly larger arenas than MLPs
+#define ARENA_SIZE 32000 
+#define TF_NUM_OPS 6 // Conv2D, Reshape, MaxPool2D, FullyConnected, Softmax, etc.
+
+Eloquent::TF::Sequential<TF_NUM_OPS, ARENA_SIZE> model;
+
+void setup() {
+    // ... setup dimensions ...
+    model.resolver.AddConv2D();
+    model.resolver.AddMaxPool2D();
+    model.resolver.AddReshape();
+    model.resolver.AddFullyConnected();
+    model.resolver.AddSoftmax();
+    
+    model.begin(cnn_model_quant_tflite);
+}
+```
+
+---
+
+## 4. Phase IV: Dynamic Context Analysis via Recurrent Neural Networks (RNN)
+
+Recurrent architectures, such as LSTMs or SimpleRNNs,
+are designed to maintain a "hidden state" across time steps,
+making them ideal for sequential data
+where the dynamic context is critical.
+
+### 4.1 Unrolling the RNN for TFLM
+
+A critical research note: TensorFlow Lite for
+Microcontrollers (TFLM) traditionally
+struggles with dynamic control flow. To ensure compatibility,
+we **unroll** the RNN during the model definition.
+This transforms the recurrent structure into a
+series of static operations,
+which TFLM can execute efficiently.
+
+```python
+# --- Define the DynamicContextRNN Model ---
+dynamic_context_rnn = tf.keras.models.Sequential([
+    # unroll=True is critical for TFLite Micro compatibility
+    tf.keras.layers.RNN(tf.keras.layers.SimpleRNNCell(128), 
+                        input_shape=(IMU_TIMESTEPS, IMU_FEATURES),
+                        name="SimpleRNN", 
+                        unroll=True),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dense(N_CLASSES, activation='softmax')
+], name="DynamicContextRNN")
+```
+
+### 4.2 Quantization Challenges in Recurrent Architectures
+
+Researchers should be aware that RNNs and LSTMs are sensitive to quantization.
+Activations like `tanh` and `sigmoid` often used in these layers
+do not have native INT8 kernels in some TFLM versions.
+If the conversion fails, one must utilize "Integer quantization with float fallback"
+or ensure the target environment supports the required kernels.
+
+### 4.3 Embedded Implementation
+
+```cpp
+#include "rnn_model_quant.h"
+
+#define ARENA_SIZE 15000
+#define TF_NUM_OPS 5
+
+Eloquent::TF::Sequential<TF_NUM_OPS, ARENA_SIZE> rnn_model;
+
+void setup() {
+    // ... setup dimensions ...
+    // Note: SimpleRNN often maps to FULLY_CONNECTED and Logistic/Tanh ops in TFLite
+    rnn_model.resolver.AddFullyConnected();
+    rnn_model.resolver.AddLogistic(); // For Sigmoid
+    rnn_model.resolver.AddTanh();
+    rnn_model.resolver.AddSoftmax();
+    
+    rnn_model.begin(rnn_model_quant_tflite);
+}
+```
+
+---
