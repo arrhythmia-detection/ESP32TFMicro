@@ -779,6 +779,7 @@ TIMESTEPS = 60
 FEATURES = 3
 N_CLASSES = 5
 
+
 def build_cnn_model():
     """
     Constructs a 2D CNN architecture for sequential feature extraction.
@@ -794,6 +795,7 @@ def build_cnn_model():
     ])
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     return model
+
 
 # Generate synthetic sequential data
 X_train = np.random.rand(500, TIMESTEPS, FEATURES, 1).astype(np.float32)
@@ -811,6 +813,7 @@ Quantization is critical for CNNs as they involve significantly more parameters 
 def representative_data_gen():
     for i in range(100):
         yield [X_train[i:i + 1]]
+
 
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -878,8 +881,8 @@ in approximately **2.05 MFLOPs**.
 def build_rnn_model():
     model = tf.keras.models.Sequential([
         # unroll=True is mandatory for stable TFLM deployment
-        tf.keras.layers.RNN(tf.keras.layers.SimpleRNNCell(64), 
-                            input_shape=(TIMESTEPS, FEATURES), 
+        tf.keras.layers.RNN(tf.keras.layers.SimpleRNNCell(64),
+                            input_shape=(TIMESTEPS, FEATURES),
                             unroll=True),
         tf.keras.layers.Dense(N_CLASSES, activation='softmax')
     ])
